@@ -1,2 +1,2 @@
 # machineLearning
-Coursera Programming Assignments
+Professor Andrew Ng's Introduction to Machine Learning course on Coursera

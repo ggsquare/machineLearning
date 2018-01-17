@@ -25,7 +25,7 @@ Theta2 = reshape(nn_params((1 + (hidden_layer_size * (input_layer_size + 1))):en
 % Setup some useful variables
 m = size(X, 1);
          
-% You n	eed to return the following variables correctly 
+% You need to return the following variables correctly 
 J = 0;
 Theta1_grad = zeros(size(Theta1));
 Theta2_grad = zeros(size(Theta2));
@@ -69,34 +69,32 @@ y_i = eye(num_labels);
 y = y_i(y, :);
 
 %Gradient variable
-bigDelta = 0;
+bigDelta1 = 0;
+bigDelta2 = 0;
 
 %For each training ex
 for i=1:m
 	%Feedforward
 	a_1 = X(i,:);
 	z_2 = Theta1*a_1';
-	a_2 = sigmoid(z_2);
-	a_2 = [1; a_2];
+	a_2 = [1; sigmoid(z_2)];
 	z_3 = Theta2*a_2;
 	hyp = sigmoid(z_3);   %this is also a_3
 
 	J = J + (-y(i,:)*log(hyp)-(1-y(i,:))*log(1-hyp));
 
 	%LINE 85
-
+	
 	%Backprop
 	delta_3 = hyp - y(i,:)';
-	delta_2 = (Theta2'*delta_3)' .* sigmoidGradient(z_2);
-	delta_2(1,:) = []; %skipping delta_0
-	
+	delta_2 = (Theta2(:,2:end)' * delta_3) .* sigmoidGradient(z_2);
+
 	%Accumulate
-	bigDelta = bigDelta + delta_2*a_1';
+	bigDelta1 = bigDelta1 + delta_2 * a_1;
+	bigDelta2 = bigDelta2 + delta_3 * a_2';
 end; 
 
-%Unregularized gradient
-bigDelta = bigDelta / m;
-
+%Calculate Cost
 J = J/m;
 
 %Regularize the cost function to avoid overfitting (code may be simple)
@@ -109,6 +107,17 @@ Theta2Reg = sum(Theta2(:) .^ 2);
 Reg = lambda/(2*m) * (Theta1Reg + Theta2Reg);
 
 J = J + Reg;
+
+%unegularized gradient
+Theta1 = [ones(rows(Theta1), 1) Theta1];
+Theta2 = [ones(rows(Theta2), 1) Theta2];
+Theta1_grad = (1/m) * bigDelta1;
+Theta2_grad = (1/m) * bigDelta2;
+
+%Overide all rows except j = 0 to regularize
+Theta1_grad(2:end,:) = (1/m) * bigDelta1(2:end,:) + (lambda/m)*Theta1(2:end,:);
+Theta2_grad(2:end,:) = (1/m) * bigDelta2(2:end,:) + (lambda/m)*Theta2(2:end,:);
+
 
 % -------------------------------------------------------------
 
